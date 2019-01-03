@@ -12,7 +12,7 @@ RUN apt-get install -y apache2 \
 	wget \
 	php	\
 	libapache2-mod-php \
-	libapache2-mod-php \
+    gettext-base\
 	php-common \
 	php-mbstring \
 	php-xmlrpc \
@@ -54,6 +54,7 @@ COPY ./config/apache2.conf /etc/apache2/apache2.conf
 COPY ./config/ports.conf /etc/apache2/ports.conf
 COPY ./config/smf.conf /etc/apache2/sites-available/smf.conf
 COPY ./config/php.ini /etc/php/7.0/apache2/php.ini
+COPY ./config/site.conf.template /etc/apache2/sites-available/site.conf.template
 
 RUN ln -sf /dev/stdout /var/log/apache2/access.log
 RUN ln -sf /dev/stdout /var/log/apache2/error.log
@@ -63,7 +64,6 @@ RUN a2dissite *.conf && a2ensite smf.conf
 RUN a2enmod rewrite
 
 RUN apache2ctl restart
+CMD /bin/bash -c "envsubst '\${HTTPS_REDIRECT_URL}' < /etc/apache2/sites-available/site.conf.template > /etc/apache2/sites-available/smf.conf && /usr/sbin/apache2ctl -D FOREGROUND"
 
-CMD /usr/sbin/apache2ctl -D FOREGROUND
-
-EXPOSE 8080
+EXPOSE 80 8080
